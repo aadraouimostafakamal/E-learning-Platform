@@ -66,7 +66,7 @@ All routes that modify user data require JWT token-based authentication. Users m
   [
     {
       "id": 1,
-      "login": "mostafa",
+      "login": "user1",
       "age": 25,
       "sexe": "M",
       "pays": "Morocco",
@@ -140,7 +140,7 @@ All routes that modify user data require JWT token-based authentication. Users m
 - **Success (200):** 
   ```json
   {
-    "message": "L'utilisateur avec l'ID 1 (mostafa) a été supprimé avec succès.",
+    "message": "L'utilisateur avec l'ID 1 (user1) a été supprimé avec succès.",
     "details": {
       "adresse": "123 Rue Example",
       "pays": "Morocco",
