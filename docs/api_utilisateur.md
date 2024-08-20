@@ -5,6 +5,7 @@ This document provides an overview of the API endpoints available for managing u
 
 ## Authentication
 All routes that modify user data require JWT token-based authentication. Users must include a valid JWT token in the `Authorization` header with the format `Bearer <token>`.
+---
 ### Create a New User
 **Endpoint:** `POST /utilisateurs`
 
@@ -27,7 +28,7 @@ All routes that modify user data require JWT token-based authentication. Users m
 - **Success (201):** User created successfully.
 - **Error (400):** Invalid request body.
 - **Error (500):** Server error.
-
+---
 ### Login
 **Endpoint:** `POST /login`
 
@@ -52,7 +53,7 @@ All routes that modify user data require JWT token-based authentication. Users m
   ```
 - **Error (400):** Invalid login or password.
 - **Error (500):** Server error.
-
+---
 ## Endpoints
 
 ### 1. Get All Users
@@ -77,7 +78,7 @@ All routes that modify user data require JWT token-based authentication. Users m
   ]
   ```
 - **Error (500):** Server error.
-
+---
 ### 2. Get User by ID
 **Endpoint:** `GET /utilisateurs/:id`
 
@@ -101,7 +102,7 @@ All routes that modify user data require JWT token-based authentication. Users m
   ```
 - **Error (404):** User not found.
 - **Error (500):** Server error.
-
+---
 ### 3. Update User by ID
 **Endpoint:** `PUT /utilisateurs/:id`
 
@@ -128,7 +129,72 @@ All routes that modify user data require JWT token-based authentication. Users m
 - **Error (404):** User not found.
 - **Error (500):** Server error.
 
-### 4. Delete User by ID
+---
+
+### 4. Verify Credentials
+**Endpoint:** `POST /utilisateurs/auth`
+
+#### Description:
+This endpoint is used to verify the credentials (login and password) of a user. If the credentials are correct, it returns the user's information (excluding the password).
+
+#### Request:
+- **URL**: `/utilisateurs/auth`
+- **Method**: `POST`
+- **Headers**: `Content-Type: application/json`
+- **Body**:
+  ```json
+  {
+    "login": "string",
+    "passwd": "string"
+  }
+  ```
+  - `login`: The user's login name.
+  - `passwd`: The user's password.
+
+#### Responses:
+- **200 OK**:
+  - **Description**: Returns the authenticated user's information without the password.
+  - **Body**:
+    ```json
+    {
+      "id": "number",
+      "login": "string",
+      "age": "number",
+      "sexe": "string",
+      "photo": "string (binary or URL)",
+      "pays": "string",
+      "adresse": "string"
+    }
+    ```
+  
+- **400 Bad Request**:
+  - **Description**: Login and password are required.
+  - **Body**:
+    ```json
+    {
+      "error": "Login et mot de passe sont requis"
+    }
+    ```
+  
+- **401 Unauthorized**:
+  - **Description**: Authentication failed due to incorrect login or password.
+  - **Body**:
+    ```json
+    {
+      "error": "Authentification échouée"
+    }
+    ```
+
+- **500 Internal Server Error**:
+  - **Description**: An error occurred on the server.
+  - **Body**:
+    ```json
+    {
+      "error": "Erreur du serveur"
+    }
+    ```
+---
+### 5. Delete User by ID
 **Endpoint:** `DELETE /utilisateurs/:id`
 
 **Description:** Deletes an existing user by ID. The user must be authenticated and can only delete their own account.
