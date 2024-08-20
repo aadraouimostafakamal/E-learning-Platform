@@ -5,6 +5,28 @@ This document provides an overview of the API endpoints available for managing u
 
 ## Authentication
 All routes that modify user data require JWT token-based authentication. Users must include a valid JWT token in the `Authorization` header with the format `Bearer <token>`.
+### Create a New User
+**Endpoint:** `POST /utilisateurs`
+
+**Description:** Creates a new user.
+
+**Request:**
+```json
+{
+  "login": "string",
+  "passwd": "string",
+  "age": 25,
+  "sexe": "M",
+  "pays": "Morocco",
+  "adresse": "123 Rue Example",
+  "photo": "base64_string"
+}
+```
+
+**Response:**
+- **Success (201):** User created successfully.
+- **Error (400):** Invalid request body.
+- **Error (500):** Server error.
 
 ### Login
 **Endpoint:** `POST /login`
@@ -69,7 +91,7 @@ All routes that modify user data require JWT token-based authentication. Users m
   ```json
   {
     "id": 1,
-    "login": "mostafa",
+    "login": "user1",
     "age": 25,
     "sexe": "M",
     "pays": "Morocco",
@@ -80,30 +102,7 @@ All routes that modify user data require JWT token-based authentication. Users m
 - **Error (404):** User not found.
 - **Error (500):** Server error.
 
-### 3. Create a New User
-**Endpoint:** `POST /utilisateurs`
-
-**Description:** Creates a new user.
-
-**Request:**
-```json
-{
-  "login": "string",
-  "passwd": "string",
-  "age": 25,
-  "sexe": "M",
-  "pays": "Morocco",
-  "adresse": "123 Rue Example",
-  "photo": "base64_string"
-}
-```
-
-**Response:**
-- **Success (201):** User created successfully.
-- **Error (400):** Invalid request body.
-- **Error (500):** Server error.
-
-### 4. Update User by ID
+### 3. Update User by ID
 **Endpoint:** `PUT /utilisateurs/:id`
 
 **Description:** Updates the details of an existing user by ID.
@@ -129,7 +128,7 @@ All routes that modify user data require JWT token-based authentication. Users m
 - **Error (404):** User not found.
 - **Error (500):** Server error.
 
-### 5. Delete User by ID
+### 4. Delete User by ID
 **Endpoint:** `DELETE /utilisateurs/:id`
 
 **Description:** Deletes an existing user by ID. The user must be authenticated and can only delete their own account.
