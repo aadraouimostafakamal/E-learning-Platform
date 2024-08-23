@@ -5,14 +5,10 @@ const jwt = require('jsonwebtoken');
 const supabase = require('../utils/supabaseClient');
 // Import the authenticateToken middleware 
 const { authenticateToken } = require('../middleware/authMiddleware');
+//import the handleError middleware
+const handleError = require('../middleware/errorHandler');
 
 const router = express.Router();
-
-// Middleware to handle errors
-function handleError(err, res, message = 'Erreur du serveur') {
-    console.error(err);
-    res.status(500).json({ error: message });
-}
 
 // Function to hash passwords
 async function hashPassword(password) {
