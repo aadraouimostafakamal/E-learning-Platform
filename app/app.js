@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 
 // Import and use utilisateur routes
 const utilisateurRoutes = require('./api/utilisateurRoutes');
-app.use('/utilisateurs', utilisateurRoutes);
+app.use('', utilisateurRoutes);
 
 // Route pour récupérer toutes les formations
 app.get('/formations', async (req, res) => {

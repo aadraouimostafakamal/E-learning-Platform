@@ -17,7 +17,7 @@ async function hashPassword(password) {
 }
 
 // Route to add a new user
-router.post('/', async (req, res) => {
+router.post('/registration', async (req, res) => {
     try {
         const { login, passwd, adresse, pays, age, sexe, photo } = req.body;
         if (!login || !passwd || !adresse || !pays || !age || !sexe || !photo) {
@@ -71,7 +71,7 @@ router.post('/login', async (req, res) => {
     }
 });
 // Route to get all users
-router.get('/', async (req, res) => {
+router.get('/users_list', async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('utilisateur')
@@ -86,7 +86,7 @@ router.get('/', async (req, res) => {
 });
 
 // Route to get a user by ID
-router.get('/:id', async (req, res) => {
+router.get('/user/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { data, error } = await supabase
@@ -108,8 +108,38 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Route to update a user
+router.put('/update_user/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { login, passwd, adresse, pays, age, sexe, photo } = req.body;
+
+        if (!login || !passwd || !adresse || !pays || !age || !sexe || !photo) {
+            return res.status(400).json({ error: 'Tous les champs sont requis' });
+        }
+
+        if (req.user.id !== parseInt(id)) {
+            return res.status(403).json({ error: "Vous n'êtes pas autorisé à mettre à jour cet utilisateur" });
+        }
+
+        const hashedPassword = await hashPassword(passwd);
+
+        const { data, error } = await supabase
+            .from('utilisateur')
+            .update({ login, passwd: hashedPassword, adresse, pays, age, sexe, photo })
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        res.status(200).json(data);
+    } catch (err) {
+        handleError(err, res);
+    }
+});
+
 // Route to delete a user
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/delete_user/:id', authenticateToken, async (req, res) => {
     const userId = req.params.id;
 
     try {
@@ -160,7 +190,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 
 // Route pour vérifier les informations d'identification de l'utilisateur (login et mot de passe)
-router.post('/auth', async (req, res) => {
+router.post('/verify_user', async (req, res) => {
     try {
         const { login, passwd } = req.body;
         if (!login || !passwd) {
