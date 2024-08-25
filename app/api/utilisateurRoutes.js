@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const supabase = require('../utils/supabaseClient');
 // Import the authenticateToken middleware 
-const { authenticateToken } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/authenticateToken');
 //import the handleError middleware
 const handleError = require('../middleware/errorHandler');
 
@@ -37,7 +37,7 @@ router.post('/registration', async (req, res) => {
             throw error;
         }
 
-        res.status(201).json(data);
+        res.status(201).send("L'tilisateur est enregistré!");
     } catch (err) {
         handleError(err, res);
     }
@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
     try {
         const { data: user, error } = await supabase
             .from('utilisateur')
-            .select('*')
+            .select('id, login, passwd, is_admin')
             .eq('login', login)
             .single();
 
@@ -58,8 +58,12 @@ router.post('/login', async (req, res) => {
         const validPassword = await bcrypt.compare(passwd, user.passwd);
         if (!validPassword) return res.status(400).send('Login ou mot de passe incorrect.');
 
-        // Generate a JWT token with expiration
-        const token = jwt.sign({ id: user.id, login: user.login }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        // Generate a JWT token with id, login, and is_admin fields
+        const token = jwt.sign(
+            { id: user.id, login: user.login, is_admin: user.is_admin },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '1h' }
+        );
 
         res.json({
             token,
@@ -70,6 +74,7 @@ router.post('/login', async (req, res) => {
         handleError(err, res);
     }
 });
+
 // Route to get all users
 router.get('/users_list', async (req, res) => {
     try {
@@ -118,7 +123,8 @@ router.put('/update_user/:id', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: 'Tous les champs sont requis' });
         }
 
-        if (req.user.id !== parseInt(id)) {
+        // Check if the user is either the owner or an admin
+        if (req.user.id !== parseInt(id) && !req.user.is_admin) {
             return res.status(403).json({ error: "Vous n'êtes pas autorisé à mettre à jour cet utilisateur" });
         }
 
@@ -132,53 +138,54 @@ router.put('/update_user/:id', authenticateToken, async (req, res) => {
 
         if (error) throw error;
 
-        res.status(200).json(data);
+        res.status(200).send("mise a jour terminé!");
     } catch (err) {
         handleError(err, res);
     }
 });
+
 
 // Route to delete a user
 router.delete('/delete_user/:id', authenticateToken, async (req, res) => {
     const userId = req.params.id;
 
     try {
-        // Verify that the user ID in the token matches the user ID being deleted
-        if (req.user.id !== parseInt(userId)) {
-            return res.status(403).json({ message: "Vous n'êtes pas autorisé à supprimer cet utilisateur" });
-        }
+        // Check if the user is the owner or an admin
+        if (req.user.id === parseInt(userId) || req.user.is_admin) {
+            // Fetch user details before deletion
+            const { data: user, error: fetchError } = await supabase
+                .from('utilisateur')
+                .select('id, login, adresse, pays, age, sexe')
+                .eq('id', userId)
+                .single();
 
-        // Fetch user details before deletion
-        const { data: user, error: fetchError } = await supabase
-            .from('utilisateur')
-            .select('id, login, adresse, pays, age, sexe')
-            .eq('id', userId)
-            .single();
+            if (fetchError) throw fetchError;
 
-        if (fetchError) throw fetchError;
-
-        if (!user) {
-            return res.status(404).json({ message: 'Utilisateur non trouvé' });
-        }
-
-        // Delete user
-        const { error: deleteError } = await supabase
-            .from('utilisateur')
-            .delete()
-            .eq('id', userId);
-
-        if (deleteError) throw deleteError;
-
-        // Return deleted user details
-        res.status(200).json({
-            message: `L'utilisateur avec l'ID ${user.id} (${user.login}) a été supprimé avec succès.`,
-            details: {
-                adresse: user.adresse,
-                pays: user.pays,
-                age: user.age,
-                sexe: user.sexe
+            if (!user) {
+                return res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
-        });
+
+            // Delete user
+            const { error: deleteError } = await supabase
+                .from('utilisateur')
+                .delete()
+                .eq('id', userId);
+
+            if (deleteError) throw deleteError;
+
+            // Return deleted user details
+            res.status(200).json({
+                message: `L'utilisateur avec l'ID ${user.id} (${user.login}) a été supprimé avec succès.`,
+                details: {
+                    adresse: user.adresse,
+                    pays: user.pays,
+                    age: user.age,
+                    sexe: user.sexe
+                }
+            });
+        } else {
+            res.status(403).json({ message: 'Accès refusé: vous pouvez uniquement supprimer votre propre compte ou en tant qu\'administrateur.' });
+        }
     } catch (error) {
         console.error('Erreur lors de la suppression de l\'utilisateur:', error);
         res.status(500).json({
