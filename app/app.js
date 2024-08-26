@@ -21,7 +21,9 @@ app.get('/', (req, res) => {
 // Import and use utilisateur routes
 const utilisateurRoutes = require('./api/utilisateurRoutes');
 app.use('', utilisateurRoutes);
-
+// Import and use contact routes
+const contactRoutes = require('./api/contactRoutes');
+app.use('', contactRoutes);
 // Route pour récupérer toutes les formations
 app.get('/formations', async (req, res) => {
     try {
