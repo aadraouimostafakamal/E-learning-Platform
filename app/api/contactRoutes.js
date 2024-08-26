@@ -20,7 +20,7 @@ router.post('/contact', async (req, res) => {
         // Store message in the database
         const { data, error } = await supabase
             .from('contacts')
-            .insert([{ name, email, subject, message, status: 'new' }])
+            .insert([{ name, email, subject, message}])
             .single();
 
         if (error) throw error;
