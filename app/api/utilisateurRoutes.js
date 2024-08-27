@@ -1,77 +1,57 @@
 // utilisateurRoutes.js
 const express = require('express');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const supabase = require('../utils/supabaseClient');
 // Import the authenticateToken middleware 
 const { authenticateToken } = require('../middleware/authenticateToken');
-//import the handleError middleware
+// Import the handleError middleware
 const handleError = require('../middleware/errorHandler');
+const { signUp, signIn, signOut } = require('../utils/auth');
 
 const router = express.Router();
 
-// Function to hash passwords
-async function hashPassword(password) {
-    const saltRounds = 10;
-    return await bcrypt.hash(password, saltRounds);
-}
-
-// Route to add a new user
-router.post('/registration', async (req, res) => {
+// Route pour inscrire un utilisateur
+router.post('/signup', async (req, res) => {
+    const { login, email, passwd, adresse, pays, age, sexe, photo } = req.body;
     try {
-        const { login, passwd, adresse, pays, age, sexe, photo } = req.body;
-        if (!login || !passwd || !adresse || !pays || !age || !sexe || !photo) {
-            return res.status(400).json({ error: 'Tous les champs sont requis' });
+        const user = await signUp({
+            login,
+            email,
+            passwd,
+            adresse,
+            pays,
+            age,
+            sexe,
+            photo
+        });
+        res.status(201).json({ user });
+    } catch (error) {
+        if (error.message.includes('Email rate limit exceeded')) {
+            res.status(429).json({ message: 'Rate limit exceeded. Please try again later.' });
+        } else {
+            handleError(error, req, res);
         }
-
-        const hashedPassword = await hashPassword(passwd);
-        const { data, error } = await supabase
-            .from('utilisateur')
-            .insert([{ login, passwd: hashedPassword, adresse, pays, age, sexe, photo }])
-            .single();
-
-        if (error) {
-            if (error.code === '23505') {
-                return res.status(400).json({ error: 'Cet utilisateur existe déjà.' });
-            }
-            throw error;
-        }
-
-        res.status(201).send("L'tilisateur est enregistré!");
-    } catch (err) {
-        handleError(err, res);
     }
 });
-// Route for login
-router.post('/login', async (req, res) => {
-    const { login, passwd } = req.body;
 
+//Route pour connecter un utilisateur
+router.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { data: user, error } = await supabase
-            .from('utilisateur')
-            .select('id, login, passwd, is_admin')
-            .eq('login', login)
-            .single();
+        const result = await signIn(email, password);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
-        if (error || !user) return res.status(400).send('Login ou mot de passe incorrect.');
-
-        const validPassword = await bcrypt.compare(passwd, user.passwd);
-        if (!validPassword) return res.status(400).send('Login ou mot de passe incorrect.');
-
-        // Generate a JWT token with id, login, and is_admin fields
-        const token = jwt.sign(
-            { id: user.id, login: user.login, is_admin: user.is_admin },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        res.json({
-            token,
-            status: 'success',
-            expiresIn: '1 hour'
-        });
-    } catch (err) {
-        handleError(err, res);
+// Route pour déconnecter un utilisateur
+router.post('/logout', authenticateToken, async (req, res) => {
+    try {
+        await signOut();
+        res.status(200).json({ message: 'User signed out' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
 
