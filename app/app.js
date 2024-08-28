@@ -22,86 +22,9 @@ app.get('/', (req, res) => {
 const utilisateurRoutes = require('./api/utilisateurRoutes');
 app.use('/utilisateurs', utilisateurRoutes);
 
-// Route pour récupérer toutes les formations
-app.get('/formations', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM Formation');
-        res.status(200).json(result.rows);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour récupérer une formation par ID
-app.get('/formations/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('SELECT * FROM Formation WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).send('Formation non trouvée');
-        }
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour ajouter une nouvelle formation
-app.post('/formations', async (req, res) => {
-    try {
-        const { nom, description, date_debut, date_fin } = req.body;
-        if (!nom || !description || !date_debut || !date_fin) {
-            return res.status(400).json({ error: 'Tous les champs sont requis' });
-        }
-        const result = await pool.query(
-            'INSERT INTO Formation (nom, description, date_debut, date_fin) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nom, description, date_debut, date_fin]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour mettre à jour une formation existante
-app.put('/formations/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nom, description, date_debut, date_fin } = req.body;
-        if (!nom || !description || !date_debut || !date_fin) {
-            return res.status(400).json({ error: 'Tous les champs sont requis' });
-        }
-        const result = await pool.query(
-            'UPDATE Formation SET nom = $1, description = $2, date_debut = $3, date_fin = $4 WHERE id = $5 RETURNING *',
-            [nom, description, date_debut, date_fin, id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).send('Formation non trouvée');
-        }
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour supprimer une formation
-app.delete('/formations/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('DELETE FROM Formation WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).send('Formation non trouvée');
-        }
-        res.status(204).send();
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
+// Import and Use the formations routes
+const formationsRoutes = require('./api/formationsRoutes');
+app.use('/formations', formationsRoutes);
 
 // Route pour récupérer tous les cours
 app.get('/cours', async (req, res) => {
