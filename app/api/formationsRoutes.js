@@ -82,15 +82,26 @@ router.delete('/:idformation', async (req, res) => {
         const { idformation } = req.params;
         console.log(`Deleting formation with ID: ${idformation}`); // Log the ID
 
+        // Check if the formation exists
+        const { data: existingData, error: existError } = await supabase
+            .from('formation')
+            .select('idformation')
+            .eq('idformation', idformation)
+        
+        if (existError) {
+            return res.status(500).json({ message: 'Erreur du serveur', error: existError.message });
+        }
+
+        if (!existingData || existingData.length === 0) {
+            return res.status(404).json({ message: 'Formation non trouvée' });
+        }
+
         const { data, error } = await supabase
             .from('formation')
             .delete()
             .eq('idformation', idformation);
 
-        console.log('Supabase response:', { data, error }); // Log the response
-
         if (error) {
-            console.error('Supabase error:', error); // Log the error
             return res.status(500).json({ message: 'Erreur du serveur', error: error.message });
         }
 
