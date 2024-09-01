@@ -40,7 +40,7 @@ router.get('/:idformation', async (req, res) => {
 });
 
 // Create a new formation
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
     try {
         const { idapprenant, idformateur, idcours, datedebut, datefin, montantpaye } = req.body;
         const { data, error } = await supabase
@@ -56,7 +56,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update an existing formation by ID
-router.put('/:idformation', async (req, res) => {
+router.put('/update/:idformation', async (req, res) => {
     try {
         const { idformation } = req.params;
         const { idapprenant, idformateur, idcours, datedebut, datefin, montantpaye } = req.body;
@@ -64,20 +64,25 @@ router.put('/:idformation', async (req, res) => {
             .from('formation')
             .update({ idapprenant, idformateur, idcours, datedebut, datefin, montantpaye })
             .eq('idformation', idformation)
-            .single();
-        if (error) throw error;
-        if (!data) {
+            .select('*');
+        console.log('Supabase response:', { data, error });
+
+        if (error) {
+            console.error('Supabase error:', error); 
+            return res.status(500).json({ message: 'Erreur du serveur', error: error.message });
+        }
+        if (!data || data.length === 0) {
             return res.status(404).send('Formation non trouvée');
         }
-        res.status(200).json(data);
+        res.status(200).json({ message: 'Formation mise à jour avec succès', data });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
+        console.error('Error:', err.message);
+        res.status(500).json({ message: 'Erreur du serveur', error: err.message });
     }
 });
 
 // Delete a formation by ID
-router.delete('/:idformation', async (req, res) => {
+router.delete('/delete/:idformation', async (req, res) => {
     try {
         const { idformation } = req.params;
         console.log(`Deleting formation with ID: ${idformation}`); // Log the ID
