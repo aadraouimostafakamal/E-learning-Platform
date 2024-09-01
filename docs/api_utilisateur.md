@@ -1,239 +1,171 @@
-# API Documentation - Utilisateur
+# User API Documentation
 
-## Introduction
-This document provides an overview of the API endpoints available for managing users in the E-learning Platform. The API allows for user authentication, retrieval, creation, updating, and deletion.
+## Table of Contents
+- [User Signup](#user-signup)
+- [User Signin](#user-signin)
+- [Password Recovery](#password-recovery)
+- [Password Reset](#password-reset)
+- [User Logout](#user-logout)
+- [Get All Users](#get-all-users)
+- [Get User by ID](#get-user-by-id)
+- [Update User](#update-user)
+- [Delete User](#delete-user)
+- [Verify User Credentials](#verify-user-credentials)
 
-## Authentication
-All routes that modify user data require JWT token-based authentication. Users must include a valid JWT token in the `Authorization` header with the format `Bearer <token>`.
 ---
-### Create a New User
-**Endpoint:** `POST /utilisateurs`
 
-**Description:** Creates a new user.
+### User Signup
 
-**Request:**
-```json
-{
-  "login": "string",
-  "passwd": "string",
-  "age": 25,
-  "sexe": "M",
-  "pays": "Morocco",
-  "adresse": "123 Rue Example",
-  "photo": "base64_string"
-}
-```
-
-**Response:**
-- **Success (201):** User created successfully.
-- **Error (400):** Invalid request body.
-- **Error (500):** Server error.
----
-### Login
-**Endpoint:** `POST /login`
-
-**Description:** Authenticates a user and returns a JWT token.
-
-**Request:**
-```json
-{
-  "login": "string",
-  "passwd": "string"
-}
-```
-
-**Response:**
-- **Success (200):**
+- **Endpoint**: `/signup`
+- **Method**: `POST`
+- **Description**: This route is used to sign up a new user.
+- **Request Body**:
   ```json
   {
-    "token": "jwt_token_string",
-    "status": "success",
-    "expiresIn": "1 hour"
-  }
-  ```
-- **Error (400):** Invalid login or password.
-- **Error (500):** Server error.
----
-## Endpoints
-
-### 1. Get All Users
-**Endpoint:** `GET /utilisateurs`
-
-**Description:** Retrieves a list of all users.
-
-**Response:**
-- **Success (200):**
-  ```json
-  [
-    {
-      "id": 1,
-      "login": "user1",
-      "age": 25,
-      "sexe": "M",
-      "pays": "Morocco",
-      "adresse": "123 Rue Example",
-      "photo": "base64_string"
-    },
-    ...
-  ]
-  ```
-- **Error (500):** Server error.
----
-### 2. Get User by ID
-**Endpoint:** `GET /utilisateurs/:id`
-
-**Description:** Retrieves the details of a specific user by ID.
-
-**Parameters:**
-- `id`: The ID of the user to retrieve.
-
-**Response:**
-- **Success (200):**
-  ```json
-  {
-    "id": 1,
-    "login": "user1",
+    "login": "user_login",
+    "email": "user@example.com",
+    "passwd": "password",
+    "adresse": "123 Main St",
+    "pays": "Country",
     "age": 25,
     "sexe": "M",
-    "pays": "Morocco",
-    "adresse": "123 Rue Example",
-    "photo": "base64_string"
+    "photo": "base64_photo_string"
   }
   ```
-- **Error (404):** User not found.
-- **Error (500):** Server error.
----
-### 3. Update User by ID
-**Endpoint:** `PUT /utilisateurs/:id`
+- **Response**:
+  - `201 OK`: Signup successful. The user is prompted to verify their email.
+  - `429 Too Many Requests`: Email rate limit exceeded.
+  - `400 Bad Request`: Error occurred during signup.
 
-**Description:** Updates the details of an existing user by ID.
+### User Signin
 
-**Parameters:**
-- `id`: The ID of the user to update.
-
-**Request:**
-```json
-{
-  "login": "string",
-  "passwd": "string",
-  "age": 25,
-  "sexe": "M",
-  "pays": "Morocco",
-  "adresse": "123 Rue Example",
-  "photo": "base64_string"
-}
-```
-
-**Response:**
-- **Success (200):** User updated successfully.
-- **Error (404):** User not found.
-- **Error (500):** Server error.
-
----
-
-### 4. Verify Credentials
-**Endpoint:** `POST /utilisateurs/auth`
-
-#### Description:
-This endpoint is used to verify the credentials (login and password) of a user. If the credentials are correct, it returns the user's information (excluding the password).
-
-#### Request:
-- **URL**: `/utilisateurs/auth`
+- **Endpoint**: `/signin`
 - **Method**: `POST`
-- **Headers**: `Content-Type: application/json`
-- **Body**:
+- **Description**: This route is used to sign in a user.
+- **Request Body**:
   ```json
   {
-    "login": "string",
-    "passwd": "string"
+    "email": "user@example.com",
+    "password": "password"
   }
   ```
-  - `login`: The user's login name.
-  - `passwd`: The user's password.
+- **Response**:
+  - `200 OK`: Signin successful, returns user data and session information.
+  - `400 Bad Request`: Invalid login credentials.
 
-#### Responses:
-- **200 OK**:
-  - **Description**: Returns the authenticated user's information without the password.
-  - **Body**:
-    ```json
-    {
-      "id": "number",
-      "login": "string",
-      "age": "number",
-      "sexe": "string",
-      "photo": "string (binary or URL)",
-      "pays": "string",
-      "adresse": "string"
-    }
-    ```
-  
-- **400 Bad Request**:
-  - **Description**: Login and password are required.
-  - **Body**:
-    ```json
-    {
-      "error": "Login et mot de passe sont requis"
-    }
-    ```
-  
-- **401 Unauthorized**:
-  - **Description**: Authentication failed due to incorrect login or password.
-  - **Body**:
-    ```json
-    {
-      "error": "Authentification échouée"
-    }
-    ```
+### Password Recovery
 
-- **500 Internal Server Error**:
-  - **Description**: An error occurred on the server.
-  - **Body**:
-    ```json
-    {
-      "error": "Erreur du serveur"
-    }
-    ```
----
-### 5. Delete User by ID
-**Endpoint:** `DELETE /utilisateurs/:id`
-
-**Description:** Deletes an existing user by ID. The user must be authenticated and can only delete their own account.
-
-**Parameters:**
-- `id`: The ID of the user to delete.
-
-**Response:**
-- **Success (200):** 
+- **Endpoint**: `/recover`
+- **Method**: `POST`
+- **Description**: This route is used to initiate the password recovery process. It sends a password recovery email to the user.
+- **Request Body**:
   ```json
   {
-    "message": "L'utilisateur avec l'ID 1 (user1) a été supprimé avec succès.",
-    "details": {
-      "adresse": "123 Rue Example",
-      "pays": "Morocco",
-      "age": 25,
-      "sexe": "M"
-    }
+    "email": "user@example.com"
   }
   ```
-- **Error (403):** Unauthorized to delete this user.
-- **Error (404):** User not found.
-- **Error (500):** Server error.
+- **Response**:
+  - `200 OK`: Password recovery email sent.
+  - `400 Bad Request`: Error occurred during password recovery.
 
-## Error Handling
-All API responses include a status code that indicates the success or failure of the request. Common status codes used by this API include:
-- **200:** OK (Success)
-- **201:** Created (Success)
-- **400:** Bad Request (Client Error)
-- **401:** Unauthorized (Authentication Error)
-- **403:** Forbidden (Authorization Error)
-- **404:** Not Found (Client Error)
-- **500:** Internal Server Error (Server Error)
+### Password Reset
 
-## Security Considerations
-- Passwords are hashed using bcrypt before being stored in the database.
-- JWT tokens are used for user authentication, with tokens signed using a secret key stored in the environment variables.
-- Ensure that the `ACCESS_TOKEN_SECRET` is kept secure and not exposed in version control.
+- **Endpoint**: `/reset_password`
+- **Method**: `POST`
+- **Description**: This route is used to reset a user's password after they have received a recovery email.
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "access_token": "access_token_from_email",
+    "new_password": "new_password"
+  }
+  ```
+- **Response**:
+  - `200 OK`: Password has been reset successfully.
+  - `400 Bad Request`: Invalid or expired token, or failed to update password.
 
-## Future Improvements
-- Implement pagination for the `GET /utilisateurs` endpoint to handle large datasets.
-- Add rate limiting to prevent abuse of the login endpoint.
+### User Logout
+
+- **Endpoint**: `/logout`
+- **Method**: `POST`
+- **Description**: This route is used to log out a user.
+- **Request Header**: Requires JWT token in the `Authorization` header.
+- **Response**:
+  - `200 OK`: User signed out successfully.
+  - `400 Bad Request`: Error occurred during logout.
+
+### Get All Users
+
+- **Endpoint**: `/users_list`
+- **Method**: `GET`
+- **Description**: This route is used to retrieve a list of all users.
+- **Response**:
+  - `200 OK`: Returns a list of all users.
+  - `500 Internal Server Error`: Error occurred while fetching users.
+
+### Get User by ID
+
+- **Endpoint**: `/user/:id`
+- **Method**: `GET`
+- **Description**: This route is used to retrieve a user by their ID.
+- **Request Parameter**: `id` - The ID of the user.
+- **Response**:
+  - `200 OK`: Returns the user data.
+  - `404 Not Found`: User not found.
+  - `500 Internal Server Error`: Error occurred while fetching user data.
+
+### Update User
+
+- **Endpoint**: `/update_user/:id`
+- **Method**: `PUT`
+- **Description**: This route is used to update a user's information.
+- **Request Header**: Requires JWT token in the `Authorization` header.
+- **Request Parameter**: `id` - The ID of the user to update.
+- **Request Body**:
+  ```json
+  {
+    "login": "new_login",
+    "passwd": "new_password",
+    "adresse": "new_address",
+    "pays": "new_country",
+    "age": 30,
+    "sexe": "F",
+    "photo": "new_base64_photo_string"
+  }
+  ```
+- **Response**:
+  - `200 OK`: User updated successfully.
+  - `403 Forbidden`: User is not authorized to update this account.
+  - `400 Bad Request`: Invalid input or missing fields.
+  - `500 Internal Server Error`: Error occurred during update.
+
+### Delete User
+
+- **Endpoint**: `/delete_user/:id`
+- **Method**: `DELETE`
+- **Description**: This route is used to delete a user.
+- **Request Header**: Requires JWT token in the `Authorization` header.
+- **Request Parameter**: `id` - The ID of the user to delete.
+- **Response**:
+  - `200 OK`: User deleted successfully.
+  - `403 Forbidden`: User is not authorized to delete this account.
+  - `404 Not Found`: User not found.
+  - `500 Internal Server Error`: Error occurred during deletion.
+
+### Verify User Credentials
+
+- **Endpoint**: `/verify_user`
+- **Method**: `POST`
+- **Description**: This route is used to verify a user's credentials (login and password).
+- **Request Body**:
+  ```json
+  {
+    "login": "user_login",
+    "passwd": "password"
+  }
+  ```
+- **Response**:
+  - `200 OK`: Returns user data without the password.
+  - `400 Bad Request`: Missing login or password.
+  - `401 Unauthorized`: Authentication failed.
