@@ -1,6 +1,7 @@
 // utilisateurRoutes.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const supabase = require('../utils/supabaseClient');
 // Import the authenticateToken middleware 
 const { authenticateToken } = require('../middleware/authenticateToken');
@@ -24,7 +25,7 @@ router.post('/signup', async (req, res) => {
             sexe,
             photo
         });
-        res.status(201).json({ user });
+        res.status(201).send("Verify your Email!");;
     } catch (error) {
         if (error.message.includes('Email rate limit exceeded')) {
             res.status(429).json({ message: 'Rate limit exceeded. Please try again later.' });
@@ -42,6 +43,67 @@ router.post('/signin', async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         res.status(400).json({ error: error.message });
+    }
+});
+
+// Route pour demander la récupération de mot de passe
+router.post('/recover', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'http://localhost:3000/api/auth/confirm' // This will handle the token verification
+        });
+        if (error) {
+            throw error;
+        }
+        res.status(200).json({ message: 'Password recovery email sent' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Route to reset the user's password
+router.post('/reset_password', async (req, res) => {
+    const { email, access_token, new_password } = req.body;
+    console.log(req.body);
+
+    try {
+        // Verify the OTP (access token)
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+            email: email,  // Ensure the correct email is provided
+            token: access_token,
+            type: 'recovery',  // Specify that this is a recovery token
+        });
+
+        if (verifyError) {
+            console.error('Error verifying OTP:', verifyError.message);
+            return res.status(400).json({ error: 'Invalid or expired token' });
+        }
+
+        // Update the user's password
+        const { error: updateError } = await supabase.auth.updateUser({ password: new_password });
+
+        if (updateError) {
+            console.error('Error updating password:', updateError.message);
+            return res.status(400).json({ error: 'Failed to update the password.' });
+        }
+        
+        // Hash the new password and update it in your local database
+        const hashedPassword = await bcrypt.hash(new_password, 10);
+        const { error: dbError } = await supabase
+            .from('utilisateur')
+            .update({ passwd: hashedPassword })
+            .eq('email', email);
+
+        if (dbError) {
+            console.error('Error updating local database:', dbError.message);
+            return res.status(400).json({ error: 'Failed to update the password in the local database' });
+        }
+
+        res.status(200).json({ message: 'Password has been reset successfully' });
+    } catch (error) {
+        console.error('Error in reset password route:', error.message);
+        res.status(500).json({ error: 'An error occurred while resetting the password' });
     }
 });
 

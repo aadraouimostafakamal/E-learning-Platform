@@ -3,9 +3,15 @@
 const express = require('express');
 const helmet = require('helmet');
 require('dotenv').config();
-
+const path = require('path');
 const app = express();
 
+// Serve static files from the 'app' directory
+app.use('/app', express.static(path.join(__dirname, 'app')));
+// Serve the reset_password.html file from the root directory
+app.get('/reset_password.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'reset_password.html'));
+});
 // Apply middleware
 app.use(express.json());
 app.use(helmet());
