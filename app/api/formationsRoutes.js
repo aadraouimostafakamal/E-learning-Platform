@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
             .select('*');
         // If there is an error, throw it to be caught by the catch block
         if (error) throw error;
+        
         // If no data is returned, send a 404 status with a message
         if (!data) {
             return res.status(404).send('Formation non trouvée');
@@ -31,6 +32,7 @@ router.get('/', async (req, res) => {
 router.get('/:idformation', async (req, res) => {
     try {
         const { idformation } = req.params; // Extract the ID from the request parameters
+
         // Query the 'formation' table to select the row with the specified ID
         const { data, error } = await supabase
             .from('formation')
@@ -52,6 +54,7 @@ router.get('/:idformation', async (req, res) => {
 router.post('/create', async (req, res) => {
     try {
         const { idapprenant, idformateur, idcours, datedebut, datefin, montantpaye } = req.body;
+
         // Insert a new row into the 'formation' table
         const { data, error } = await supabase
             .from('formation')
@@ -70,6 +73,7 @@ router.put('/update/:idformation', async (req, res) => {
     try {
         const { idformation } = req.params; // Extract the ID from the request parameters to verify the ID
         const { idapprenant, idformateur, idcours, datedebut, datefin, montantpaye } = req.body;
+
         // Update the specified row in the 'formation' table
         const { data, error } = await supabase
             .from('formation')
@@ -94,6 +98,7 @@ router.put('/update/:idformation', async (req, res) => {
 
         // If the update is successful, send the updated data with a 200 status
         res.status(200).json({ message: 'Formation mise à jour avec succès', data });
+
     } catch (err) {
         // Log the error message to the console
         console.error('Error:', err.message);
@@ -108,6 +113,7 @@ router.delete('/delete/:idformation', async (req, res) => {
     try {
         const { idformation } = req.params; // Extract the ID from the request parameters
         console.log(`Deleting formation with ID: ${idformation}`); // Log the ID for debugging purposes
+
         // We need to verify that the formation exists before attempting to delete it.
         // This is important because if we attempt to delete a row that doesn't exist,
         // the deletion will be "successful" but nothing will actually be deleted.
