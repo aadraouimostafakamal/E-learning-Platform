@@ -26,86 +26,9 @@ app.use('/utilisateurs', utilisateurRoutes);
 const formationsRoutes = require('./api/formationsRoutes');
 app.use('/formations', formationsRoutes);
 
-// Route pour récupérer tous les cours
-app.get('/cours', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM Cours');
-        res.status(200).json(result.rows);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour récupérer un cours par ID
-app.get('/cours/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('SELECT * FROM Cours WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).send('Cours non trouvé');
-        }
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour ajouter un nouveau cours
-app.post('/cours', async (req, res) => {
-    try {
-        const { nom, description, formation_id } = req.body;
-        if (!nom || !description || !formation_id) {
-            return res.status(400).json({ error: 'Tous les champs sont requis' });
-        }
-        const result = await pool.query(
-            'INSERT INTO Cours (nom, description, formation_id) VALUES ($1, $2, $3) RETURNING *',
-            [nom, description, formation_id]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour mettre à jour un cours existant
-app.put('/cours/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { nom, description, formation_id } = req.body;
-        if (!nom || !description || !formation_id) {
-            return res.status(400).json({ error: 'Tous les champs sont requis' });
-        }
-        const result = await pool.query(
-            'UPDATE Cours SET nom = $1, description = $2, formation_id = $3 WHERE id = $4 RETURNING *',
-            [nom, description, formation_id, id]
-        );
-        if (result.rows.length === 0) {
-            return res.status(404).send('Cours non trouvé');
-        }
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
-
-// Route pour supprimer un cours
-app.delete('/cours/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('DELETE FROM Cours WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).send('Cours non trouvé');
-        }
-        res.status(204).send();
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Erreur du serveur');
-    }
-});
+// Import and Use the cours routes
+const coursRoutes = require('./api/coursRoutes');
+app.use('/cours', coursRoutes);
 
 // Route pour récupérer tous les modules
 app.get('/modules', async (req, res) => {
