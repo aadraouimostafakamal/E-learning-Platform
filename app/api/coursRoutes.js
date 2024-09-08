@@ -1,6 +1,6 @@
 const express = require('express'); // Import the express module
 const router = express.Router(); // Create a new router object
-const supabase = require('../utils/supabaseClient'); // Import the Supabase client (ensure the path is correct)
+const supabase = require('../utils/supabaseClient'); // Import the Supabase client
 
 // Route pour récupérer tous les cours
 router.get('/', async (req, res) => {
