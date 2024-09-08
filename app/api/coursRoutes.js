@@ -42,15 +42,15 @@ router.get('/cours/:id', async (req, res) => {
 });
 
 // Route pour ajouter un nouveau cours
-router.post('/cours', async (req, res) => {
+router.post('/create', async (req, res) => {
     try {
-        const { nom, description, formation_id } = req.body;
-        if (!nom || !description || !formation_id) {
+        const { niveau, format, domaine, prix } = req.body;
+        if (!niveau || !format || !domaine, !prix) {
             return res.status(400).json({ error: 'Tous les champs sont requis' });
         }
         const { data, error } = await supabase
             .from('cours')
-            .insert([{ nom, description, formation_id }])
+            .insert([{ niveau, format, domaine, prix }])
             .single();
         
         if (error) throw error;
@@ -63,16 +63,16 @@ router.post('/cours', async (req, res) => {
 });
 
 // Route pour mettre à jour un cours existant
-router.put('/cours/:id', async (req, res) => {
+router.put('/update/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nom, description, formation_id } = req.body;
-        if (!nom || !description || !formation_id) {
+        const { niveau, format, domaine, prix } = req.body;
+        if (!niveau || !format || !domaine, prix) {
             return res.status(400).json({ error: 'Tous les champs sont requis' });
         }
         const { data, error } = await supabase
             .from('cours')
-            .update({ nom, description, formation_id })
+            .update({ niveau, format, domaine, prix })
             .eq('id', id)
             .single();
         
@@ -90,7 +90,7 @@ router.put('/cours/:id', async (req, res) => {
 });
 
 // Route pour supprimer un cours
-router.delete('/cours/:id', async (req, res) => {
+router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { data, error } = await supabase
