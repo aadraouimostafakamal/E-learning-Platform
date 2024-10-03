@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Access</title>
+</head>
+
+<body>
+    <h1>Content</h1>
+    <div id="content"></div>
+
+    <script>
+        // Check if the user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/signin.html'; // Redirect to sign-in if not logged in
+        }
+
+        async function fetchContent() {
+            try {
+                // Fetch user subscription details from Supabase
+                const response = await fetch('/user/subscription', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                const result = await response.json();
+                console.log(result);
+
+                if (result.subscriptionStatus === 'inactive') {
+                    // If no active subscription, redirect to subscribe
+                    window.location.href = '/subscribe.html';
+                } else {
+                    // Display appropriate content based on the plan
+                    let contentDiv = document.getElementById('content');
+
+                    if (result.planName === 'Pro Membership') {
+                        contentDiv.innerHTML = '<h2>Pro Content</h2><p>Exclusive content for Pro plan users.</p>';
+                    } else if (result.planName === 'Premium Membership') {
+                        contentDiv.innerHTML = '<h2>Premium Content</h2><p>Exclusive content for Premium plan users.</p>';
+                    } else if (result.planName === 'Basic Membership') {
+                        contentDiv.innerHTML = '<h2>Basic Content</h2><p>Basic content available for Basic plan users.</p>';
+                    } else {
+                        contentDiv.innerHTML = '<h2>No content available</h2>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching subscription:', error);
+            }
+        }
+
+        fetchContent(); // Call the function to load content based on subscription
+    </script>
+</body>
+
+</html>

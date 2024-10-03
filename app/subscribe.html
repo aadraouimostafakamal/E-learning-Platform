@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe to a Plan</title>
+</head>
+
+<body>
+    <h1>Choose a Subscription Plan</h1>
+
+    <form id="subscription-form">
+        <label for="priceId">Select a Plan:</label>
+        <select id="priceId" name="priceId">
+            <option value="price_1PudSs05WrsAOgNcESWLzXah">Basic Plan - $10/month</option>
+            <option value="price_1PudV205WrsAOgNcEgJMd9wc">Premium Plan - $30/month</option>
+            <option value="price_1PudXC05WrsAOgNc0bXyH2Z4">Pro Plan - $50/month</option>
+        </select>
+        <button type="submit">Proceed to Payment</button>
+    </form>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        const token = localStorage.getItem('token'); // Check if the user is logged in
+        if (!token) {
+            window.location.href = '/signin.html'; // Redirect to sign-in if not logged in
+        }
+
+        document.getElementById('subscription-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const priceId = document.getElementById('priceId').value;
+
+            try {
+                const response = await fetch('/api/stripe/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token // Send JWT for authentication
+                    },
+                    body: JSON.stringify({ priceId })
+                });
+
+                const session = await response.json();
+
+                if (response.ok) {
+                    // Redirect to Stripe Checkout
+                    const stripe = Stripe('pk_test_51Pub7e05WrsAOgNctJiwr82dXB9qLiZ0IEh4Lem5g3iNiA1w4Y8LGAJ76QNI17BNXFezHn4WCyswPcmNnGrnByKC00xUWKzsxb');
+                    stripe.redirectToCheckout({ sessionId: session.id });
+                } else {
+                    alert('Error: ' + session.error);
+                }
+            } catch (error) {
+                alert('An error occurred: ' + error.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

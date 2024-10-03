@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+</head>
+
+<body>
+    <h1>Sign In</h1>
+
+    <form id="signin-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required><br>
+
+        <button type="submit">Sign In</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        // Check if the user is already signed in
+        const token = localStorage.getItem('token');
+        if (token) {
+            window.location.href = '/subscribe.html'; // Redirect to the subscription page if the user is already signed in
+        }
+
+        document.getElementById('signin-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/signin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    // If sign-in is successful, store the token in localStorage
+                    if (result.token) {
+                        localStorage.setItem('token', result.token);
+                        document.getElementById('message').textContent = 'Sign-in successful! Redirecting...';
+                        setTimeout(() => {
+                            window.location.href = '/subscribe.html'; // Redirect to the subscription page
+                        }, 1000);
+                    } else {
+                        document.getElementById('message').textContent = 'Sign-in successful! No token provided.';
+                    }
+                } else {
+                    document.getElementById('message').textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('message').textContent = 'An error occurred during sign-in';
+            }
+        });
+    </script>
+</body>
+
+</html>

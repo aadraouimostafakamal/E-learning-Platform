@@ -39,20 +39,35 @@ async function signUp(userData) {
 }
 
 // Fonction pour connecter un utilisateur
+const JWT_SECRET = process.env.JWT_SECRET;
+
 async function signIn(email, password) {
     console.log(`Attempting to sign in with email: ${email}`);
+
+    // Authenticate the user with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
     });
+
     if (error) {
         console.error('Error during sign in:', error.message);
         throw new Error('Invalid login credentials');
     }
 
+    const user = data.user;
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+        expiresIn: '1h', // Set token expiration
+    });
+
     console.log('Sign in successful:', data);
-    return data;
+
+    // Return the token and user data
+    return { token, user };
 }
+
 
 // Fonction pour déconnecter un utilisateur
 async function signOut() {
